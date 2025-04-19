@@ -1,6 +1,7 @@
 package com.example.kutuphane.Services.Impl;
 
 import com.example.kutuphane.Entities.Author;
+import com.example.kutuphane.Entities.Book;
 import com.example.kutuphane.Repositories.AuthorRepository;
 import com.example.kutuphane.Repositories.BookRepository;
 import com.example.kutuphane.ResponseMessage.Constants;
@@ -17,6 +18,8 @@ public class AuthorServiceImpl implements IAuthorService {
 
     @Autowired
     private AuthorRepository authorRepository;
+    @Autowired
+    private BookRepository bookRepository;
 
 
     @Override
@@ -84,4 +87,20 @@ public class AuthorServiceImpl implements IAuthorService {
             return GenericResponse.error(Constants.EMPTY_ID);
         }
     }
+    @Override
+    public GenericResponse<?> getBooksByAuthorId(Integer authorId) {
+        System.out.println("getBooksByAuthorId called...");
+
+        if (!authorRepository.existsById(authorId)) {
+            return GenericResponse.error(Constants.EMPTY_ID);
+        }
+
+        List<Book> books = bookRepository.findByAuthorId(authorId);
+        if (books.isEmpty()) {
+            return GenericResponse.error("Bu yazara ait kitap bulunamadı.");
+        } else {
+            return GenericResponse.success(books);
+        }
+    }
+
 }

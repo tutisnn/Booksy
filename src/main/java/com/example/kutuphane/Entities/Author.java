@@ -1,9 +1,12 @@
 package com.example.kutuphane.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -21,6 +24,12 @@ public class Author {
 
     @Column(name="soyad", nullable=false)
     private String soyad;
+
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Book> books;
+
 
 
 

@@ -30,6 +30,10 @@ public class Book {
  @Column(name="durum")
  private Durum durum;
 
+ @Column(name="kapak_fotosu_url")
+ private String kitapKapakfotosuUrl;
+ @Column(name = "dil")
+ private String dil;
 
  @ManyToOne
  @JoinColumn(name = "yazar_id")
@@ -39,11 +43,10 @@ public class Book {
  @JoinColumn(name = "yayinci_id")
  private Publisher publisher;
 
-
-
+ @ManyToOne
+ @JoinColumn(name = "kategori_id")
+ private Category category;
 }
-
-
 
 
 

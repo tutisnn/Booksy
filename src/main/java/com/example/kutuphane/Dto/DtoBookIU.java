@@ -1,35 +1,26 @@
 package com.example.kutuphane.Dto;
 
-import com.example.kutuphane.Entities.Author;
 import com.example.kutuphane.Entities.Durum;
-import com.example.kutuphane.Entities.Publisher;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-
-
-public class DtoBook {
-    private Integer id;
-
+@AllArgsConstructor
+public class DtoBookIU {
 
     private String isbn;
-
-
     private String ad;
-
-
     private int baskiYili;
-
-
     private Durum durum;
+    private String kitapKapakfotosuUrl;
+    private String dil;
 
-   private DtoAuthor dtoAuthor;
-   private DtoPublisher dtoPublisher;
+    private String authorAd;
+    private String authorSoyad;
 
+    private String publisherAd;
 
+    private String categoryAd;
 }

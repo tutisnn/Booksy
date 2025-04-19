@@ -45,6 +45,11 @@ public class AuthorController implements IAuthorController {
 
         return authorService.deleteAuthor(id);
     }
+    @GetMapping("/{authorId}/books")
+    @Override
+    public GenericResponse<?> getBooksByAuthorId(@PathVariable(name="authorId") Integer authorId) {
+        return authorService.getBooksByAuthorId(authorId);
+    }
 
 
 }

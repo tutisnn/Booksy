@@ -9,6 +9,7 @@ public interface IAuthorService {
     GenericResponse<?>getAuthorById(Integer id);
     GenericResponse<?>updateAuthor(Integer id,Author author);
     GenericResponse<?>deleteAuthor(Integer id);
+    GenericResponse<?> getBooksByAuthorId(Integer authorId);
 
 
 
