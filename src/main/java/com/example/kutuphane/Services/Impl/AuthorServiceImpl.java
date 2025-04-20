@@ -1,7 +1,12 @@
 package com.example.kutuphane.Services.Impl;
 
+import com.example.kutuphane.Dto.DtoAuthor;
+import com.example.kutuphane.Dto.DtoAuthorIU;
+import com.example.kutuphane.Dto.DtoBook;
 import com.example.kutuphane.Entities.Author;
 import com.example.kutuphane.Entities.Book;
+import com.example.kutuphane.Mapper.AuthorMapper;
+import com.example.kutuphane.Mapper.BookMapperView;
 import com.example.kutuphane.Repositories.AuthorRepository;
 import com.example.kutuphane.Repositories.BookRepository;
 import com.example.kutuphane.ResponseMessage.Constants;
@@ -12,26 +17,29 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthorServiceImpl implements IAuthorService {
 
     @Autowired
     private AuthorRepository authorRepository;
+
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private AuthorMapper authorMapper;
+
+    private final BookMapperView bookMapperView = new BookMapperView();
 
     @Override
-    public GenericResponse<?> saveAuthor(Author author) {
+    public GenericResponse<?> saveAuthor(DtoAuthorIU dto) {
         System.out.println("saveAuthor called...");
 
-        if (author.getId() != null && authorRepository.existsById(author.getId())) {
-            return GenericResponse.error(Constants.FOUND_ID);
-        }
-
+        Author author = authorMapper.dtoToAuthor(dto);
         Author saved = authorRepository.save(author);
-        return GenericResponse.success(saved);
+        return GenericResponse.success(authorMapper.authorToDto(saved));
     }
 
     @Override
@@ -41,9 +49,13 @@ public class AuthorServiceImpl implements IAuthorService {
         List<Author> authors = authorRepository.findAll();
         if (authors.isEmpty()) {
             return GenericResponse.error(Constants.EMPTY_LIST);
-        } else {
-            return GenericResponse.success(authors);
         }
+
+        List<DtoAuthor> dtoList = authors.stream()
+                .map(authorMapper::authorToDto)
+                .collect(Collectors.toList());
+
+        return GenericResponse.success(dtoList);
     }
 
     @Override
@@ -51,25 +63,20 @@ public class AuthorServiceImpl implements IAuthorService {
         System.out.println("getAuthorById called...");
 
         Optional<Author> optional = authorRepository.findById(id);
-        if (optional.isPresent()) {
-            return GenericResponse.success(optional.get());
-        } else {
-            return GenericResponse.error(Constants.EMPTY_ID);
-        }
+        return optional.map(author -> GenericResponse.success(authorMapper.authorToDto(author)))
+                .orElseGet(() -> GenericResponse.error(Constants.EMPTY_ID));
     }
 
     @Override
-    public GenericResponse<?> updateAuthor(Integer id, Author updatedAuthor) {
+    public GenericResponse<?> updateAuthor(Integer id, DtoAuthorIU dto) {
         System.out.println("updateAuthor called...");
 
         Optional<Author> optional = authorRepository.findById(id);
         if (optional.isPresent()) {
             Author dbAuthor = optional.get();
-            dbAuthor.setAd(updatedAuthor.getAd());
-            dbAuthor.setSoyad(updatedAuthor.getSoyad());
-
+            authorMapper.updateAuthorFromDto(dto, dbAuthor);
             Author updated = authorRepository.save(dbAuthor);
-            return GenericResponse.success(updated);
+            return GenericResponse.success(authorMapper.authorToDto(updated));
         } else {
             return GenericResponse.error(Constants.EMPTY_ID);
         }
@@ -87,6 +94,7 @@ public class AuthorServiceImpl implements IAuthorService {
             return GenericResponse.error(Constants.EMPTY_ID);
         }
     }
+
     @Override
     public GenericResponse<?> getBooksByAuthorId(Integer authorId) {
         System.out.println("getBooksByAuthorId called...");
@@ -98,9 +106,13 @@ public class AuthorServiceImpl implements IAuthorService {
         List<Book> books = bookRepository.findByAuthorId(authorId);
         if (books.isEmpty()) {
             return GenericResponse.error("Bu yazara ait kitap bulunamadı.");
-        } else {
-            return GenericResponse.success(books);
         }
-    }
 
+        List<DtoBook> dtoList = books.stream()
+                .filter(book -> book.getAuthor() != null && book.getPublisher() != null && book.getCategory() != null)
+                .map(bookMapperView::bookToDto)
+                .collect(Collectors.toList());
+
+        return GenericResponse.success(dtoList);
+    }
 }

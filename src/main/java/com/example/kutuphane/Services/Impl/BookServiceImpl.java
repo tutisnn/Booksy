@@ -1,7 +1,10 @@
 package com.example.kutuphane.Services.Impl;
 
+import com.example.kutuphane.Dto.DtoBook;
 import com.example.kutuphane.Dto.DtoBookIU;
 import com.example.kutuphane.Entities.*;
+import com.example.kutuphane.Mapper.BookMapperIU;
+import com.example.kutuphane.Mapper.BookMapperView;
 import com.example.kutuphane.Repositories.AuthorRepository;
 import com.example.kutuphane.Repositories.BookRepository;
 import com.example.kutuphane.Repositories.CategoryRepository;
@@ -20,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class BookServiceImpl implements IBookService {
@@ -32,6 +36,9 @@ public class BookServiceImpl implements IBookService {
     private PublisherRepository publisherRepository;
     @Autowired
     private CategoryRepository categoryRepository;
+
+    private final BookMapperIU bookMapperIU = new BookMapperIU();
+    private final BookMapperView bookMapperView = new BookMapperView();
 
     @Override
     public GenericResponse<?> saveBook(DtoBookIU dto, MultipartFile file) {
@@ -59,21 +66,16 @@ public class BookServiceImpl implements IBookService {
                     return categoryRepository.save(newCategory);
                 });
 
-        Book book = new Book();
-        book.setAd(dto.getAd());
-        book.setIsbn(dto.getIsbn());
-        book.setBaskiYili(dto.getBaskiYili());
-        book.setDurum(dto.getDurum());
-        book.setDil(dto.getDil());
+        Book book = bookMapperIU.dtoToBook(dto);
         book.setAuthor(author);
         book.setPublisher(publisher);
         book.setCategory(category);
 
         try {
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(System.getProperty("user.dir") + "/src/main/resources/static/images", fileName);
+            Path path = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "static", "images", fileName);
+            Files.createDirectories(path.getParent());
             Files.write(path, file.getBytes());
-
 
             book.setKitapKapakfotosuUrl("/images/" + fileName);
         } catch (IOException e) {
@@ -81,7 +83,8 @@ public class BookServiceImpl implements IBookService {
         }
 
         Book saved = bookRepository.save(book);
-        return GenericResponse.success(saved);
+        DtoBook responseDto = bookMapperView.bookToDto(saved);
+        return GenericResponse.success(responseDto);
     }
 
     @Override
@@ -94,6 +97,7 @@ public class BookServiceImpl implements IBookService {
         }
 
         Book book = optional.get();
+        bookMapperIU.updateBookFromDto(dto, book);
 
         Author author = authorRepository.findByAdAndSoyad(dto.getAuthorAd(), dto.getAuthorSoyad())
                 .orElseGet(() -> {
@@ -117,15 +121,9 @@ public class BookServiceImpl implements IBookService {
                     return categoryRepository.save(newCategory);
                 });
 
-        book.setAd(dto.getAd());
-        book.setIsbn(dto.getIsbn());
-        book.setBaskiYili(dto.getBaskiYili());
-        book.setDurum(dto.getDurum());
-        book.setDil(dto.getDil());
         book.setAuthor(author);
         book.setPublisher(publisher);
         book.setCategory(category);
-
 
         if (file != null && !file.isEmpty()) {
             try {
@@ -141,9 +139,9 @@ public class BookServiceImpl implements IBookService {
         }
 
         Book updated = bookRepository.save(book);
-        return GenericResponse.success(updated);
+        DtoBook response = bookMapperView.bookToDto(updated);
+        return GenericResponse.success(response);
     }
-
 
     @Override
     public GenericResponse<?> deleteBook(Integer id) {
@@ -162,21 +160,29 @@ public class BookServiceImpl implements IBookService {
     public GenericResponse<?> getAllBooks() {
         System.out.println("getAllBooks called...");
         List<Book> books = bookRepository.findAll();
+
         if (books.isEmpty()) {
             return GenericResponse.error(Constants.EMPTY_LIST);
-        } else {
-            return GenericResponse.success(books);
         }
+
+        List<DtoBook> dtoBooks = books.stream()
+                .filter(book -> book.getAuthor() != null && book.getPublisher() != null && book.getCategory() != null)
+                .map(bookMapperView::bookToDto)
+                .collect(Collectors.toList());
+
+        return GenericResponse.success(dtoBooks);
     }
 
     @Override
     public GenericResponse<?> findById(Integer id) {
-        Book bookExists = bookRepository.findBookById(id);
-        if (bookExists == null) {
+        Book book = bookRepository.findBookById(id);
+
+        if (book == null) {
             return GenericResponse.error(Constants.EMPTY_ID);
-        } else {
-            return GenericResponse.success(bookExists);
         }
+
+        DtoBook dto = bookMapperView.bookToDto(book);
+        return GenericResponse.success(dto);
     }
 
     @Override
@@ -189,6 +195,11 @@ public class BookServiceImpl implements IBookService {
             return GenericResponse.error("Aradığınız kelimeyle eşleşen kitap bulunamadı.");
         }
 
-        return GenericResponse.success(foundBooks);
+        List<DtoBook> dtoList = foundBooks.stream()
+                .filter(book -> book.getAuthor() != null && book.getPublisher() != null && book.getCategory() != null)
+                .map(bookMapperView::bookToDto)
+                .collect(Collectors.toList());
+
+        return GenericResponse.success(dtoList);
     }
 }

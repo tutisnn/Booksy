@@ -1,7 +1,7 @@
 package com.example.kutuphane.Controllers.Impl;
 
 import com.example.kutuphane.Controllers.IPublisherController;
-import com.example.kutuphane.Entities.Publisher;
+import com.example.kutuphane.Dto.DtoPublisherIU;
 import com.example.kutuphane.ResponseMessage.GenericResponse;
 import com.example.kutuphane.Services.IPublisherService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +16,8 @@ public class PublisherController implements IPublisherController {
 
     @PostMapping("/save")
     @Override
-    public GenericResponse<?> savePublisher(@RequestBody Publisher publisher) {
-        return publisherService.savePublisher(publisher);
+    public GenericResponse<?> savePublisher(@RequestBody DtoPublisherIU dto) {
+        return publisherService.savePublisher(dto);
     }
 
     @GetMapping("/listAllPublishers")
@@ -35,8 +35,8 @@ public class PublisherController implements IPublisherController {
     @PutMapping("/update/{id}")
     @Override
     public GenericResponse<?> updatePublisher(@PathVariable(name = "id") Integer id,
-                                              @RequestBody Publisher updatedPublisher) {
-        return publisherService.updatePublisher(id, updatedPublisher);
+                                              @RequestBody DtoPublisherIU dto) {
+        return publisherService.updatePublisher(id, dto);
     }
 
     @DeleteMapping("/delete/{id}")

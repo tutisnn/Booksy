@@ -1,7 +1,7 @@
 package com.example.kutuphane.Controllers.Impl;
 
 import com.example.kutuphane.Controllers.ICategoryController;
-import com.example.kutuphane.Entities.Category;
+import com.example.kutuphane.Dto.DtoCategoryIU;
 import com.example.kutuphane.ResponseMessage.GenericResponse;
 import com.example.kutuphane.Services.ICategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +16,8 @@ public class CategoryController implements ICategoryController {
 
     @PostMapping("/save")
     @Override
-    public GenericResponse<?> saveCategory(@RequestBody Category category) {
-        return categoryService.saveCategory(category);
+    public GenericResponse<?> saveCategory(@RequestBody DtoCategoryIU dto) {
+        return categoryService.saveCategory(dto);
     }
 
     @GetMapping("/listAllCategories")
@@ -35,8 +35,8 @@ public class CategoryController implements ICategoryController {
     @PutMapping("/update/{id}")
     @Override
     public GenericResponse<?> updateCategory(@PathVariable(name = "id") Integer id,
-                                             @RequestBody Category category) {
-        return categoryService.updateCategory(id, category);
+                                             @RequestBody DtoCategoryIU dto) {
+        return categoryService.updateCategory(id, dto);
     }
 
     @DeleteMapping("/delete/{id}")
